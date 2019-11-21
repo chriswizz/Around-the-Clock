@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Around the Clock</title>
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+</head>
+<body id="body">
+
+	<div id="container">
+			
+		<div id="center-point"></div>
+		<div id="center"></div>
+
+		<div class="pointer" id="pointer-hour"></div>
+		<div class="pointer" id="pointer-minute"></div>
+		<div class="pointer" id="pointer-second"></div>
+
+	</div>
+
+	<script>
+		
+		//define sizes
+		var containerSizeVw = 40;//in vw
+		var containerObj = document.getElementById("container");
+		containerObj.style.width = containerSizeVw + "vw";
+		containerObj.style.height = containerSizeVw + "vw";
+		var containerWidth = containerObj.offsetWidth;
+		var containerHeight = containerObj.offsetHeight;
+
+		var numberSize = containerWidth/10;//in px
+		var containerMarginTopBottom = numberSize;
+		var containerMarginLeftRightVw = (100 - containerSizeVw)/2;
+		containerObj.style.margin = containerMarginTopBottom + "px " + containerMarginLeftRightVw + "vw";
+
+		var centerSize = containerWidth/60;//in px
+		var pointerHoursLengthPc = 25;//in %
+		var pointerMinutesLengthPc = 35;//in %
+		var pointerSecondsLengthPc = 40;//in %
+		var fontSize = numberSize*3/4;
+
+		var pointerHoursWidth = 10;//in px
+		var pointerMinutesWidth = 6;//in px
+		var pointerSecondsWidth = 4;//in px
+
+		//define center point
+		var centerPointObj = document.getElementById("center-point");
+		centerPointObj.style.top = "50%";
+		centerPointObj.style.left = "50%";
+		var centerPointLeft = document.getElementById("center-point").offsetLeft;
+		var centerPointTop = document.getElementById("center-point").offsetTop;
+
+		//define center
+		var centerObj = document.getElementById("center");
+		centerObj.style.width = centerSize + "px";
+		centerObj.style.height = centerSize + "px";
+		centerObj.style.left = centerPointLeft - centerSize/2 + "px";
+		centerObj.style.top = centerPointTop - centerSize/2 + "px";
+
+		//create numbers
+		function toRad(degrees) {
+			return(degrees*Math.PI/180)
+		}
+
+		var i = 0;
+		var newNumbers = "";
+
+		for (i = 1; i < 13; i++) {
+			var shiftLeft = centerPointLeft + Math.cos(toRad(90 - i*30)) * containerWidth/2 - numberSize/2;
+			var shiftTop = centerPointTop - Math.sin(toRad(90 - i*30)) * containerHeight/2 - numberSize/2;
+
+			newNumbers += "<div class='numbers' id='number-" + i + "' style='left:" + shiftLeft + "px;top:" + shiftTop + "px;width:" + numberSize + "px;height:" + numberSize + "px;line-height:" + numberSize + "px;font-size:" + fontSize + "px'>" + i + "</div>";
+		}
+
+		function addNumbers() {
+			document.getElementById("container").innerHTML += newNumbers;
+		}
+
+		addNumbers();
+
+		//create pointer constructor
+		function PointerConstructor(name, currentTimeUnits, circleUnits, pointerLengthPc, pointerWidth) {
+			this.name = name;
+			this.currentTimeUnits = currentTimeUnits;
+			this.rotationBase = 360/circleUnits;
+			this.pointerLengthPc = pointerLengthPc;
+			this.pointerWidth = pointerWidth;
+		}
+
+		function createPointers() {
+			//get date
+			var now = new Date();
+			var nowHours = now.getHours() + now.getMinutes()/60;
+			var nowMinutes = now.getMinutes();
+			var nowSeconds = now.getSeconds();
+
+			//construct pointers
+			var pointerHours = new PointerConstructor("pointer-hours", nowHours, 12, pointerHoursLengthPc, pointerHoursWidth);
+			var pointerMinutes= new PointerConstructor("pointer-minutes", nowMinutes, 60, pointerMinutesLengthPc, pointerMinutesWidth);
+			var pointerSeconds = new PointerConstructor("pointer-seconds", nowSeconds, 60, pointerSecondsLengthPc, pointerSecondsWidth);
+
+			var pointersArray = [pointerHours, pointerMinutes, pointerSeconds];
+
+			var myPointer;
+			var pointerDegree;
+			var pointerLength;
+
+			//create pointers
+			var j = 0;
+			for (j = 0; j < pointersArray.length; j++) {
+				var pointer = document.querySelector(".pointer");
+				pointer.parentNode.removeChild(pointer);
+
+				myPointer = document.createElement("div");
+				containerObj.appendChild(myPointer);
+				myPointer.id = pointersArray[j].name;
+				myPointer.className = "pointer";
+
+				pointerDegree = - 90 + pointersArray[j].currentTimeUnits*pointersArray[j].rotationBase;
+				myPointer.style.transform = "rotate(" + pointerDegree + "deg)";
+
+				myPointer.style.width = pointersArray[j].pointerLengthPc + "%";
+				pointerLength = myPointer.offsetWidth;
+				myPointer.style.height = pointersArray[j].pointerWidth + "px";
+
+				myPointer.style.left = centerPointLeft - pointerLength/2 + Math.cos(toRad(pointerDegree))*pointerLength/2 + "px";
+				myPointer.style.top = centerPointLeft + Math.sin(toRad(pointerDegree))*pointerLength/2 - pointersArray[j].pointerWidth/2 + "px";
+			}
+			setInterval(createPointers, 100);
+		}
+
+		createPointers();
+
+		//show in console
+		var viewWidth = window.innerWidth;
+		var viewHeight = window.innerHeight;
+
+		console.log("viewWidth: " + viewWidth);
+		console.log("viewHeight: " + viewHeight);
+		console.log("containerWidth: " + containerWidth);
+		console.log("containerHeight: " + containerHeight);
+
+		//reload when resized
+		window.onresize = function(event) {
+    		location.reload();
+		}
+
+	</script>
+</body>
+</html>
